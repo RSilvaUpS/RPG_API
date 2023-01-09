@@ -1,4 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using TBRPGF_API;
+using TBRPGF_API.DbInitializer;
+
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("ConnectionDB") ?? throw new InvalidOperationException("Connection string 'ConnectionDB' not found.");
+
+builder.Services.AddDbContext<TBRPGDBContext>(options =>
+    options.UseSqlServer(connectionString));
+
+builder.Services.AddDbContext<TBRPGDBContext>(options => options.UseSqlServer(
+    builder.Configuration.GetConnectionString("ConnectionDB")));
 
 // Add services to the container.
 
@@ -17,6 +29,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+    dbInitializer.Initialize();
+}
 
 app.UseAuthorization();
 
