@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TBRPGF_API;
+using TBRPGF_API.Data.Context;
 
-namespace TBRPGF_API.DbInitializer
+namespace TBRPGF_API.Data.DbInitializer
 {
     public class DbInitializer : IDbInitializer
     {

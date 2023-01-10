@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TBRPGF_API.DbInitializer
+namespace TBRPGF_API.Data.DbInitializer
 {
     public interface IDbInitializer
     {

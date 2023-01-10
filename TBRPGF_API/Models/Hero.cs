@@ -20,7 +20,7 @@ namespace TBRPGF_API.Heroes
         public HeroClass HeroClass { get; set; }
         public int AccuracyRate { get; set; }
         public Rating Rating { get; set; }
-
+        public bool IsPlayable { get; set; }
 
     }
 }
