@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using TBRPGF_API.Data.Context;
 using TBRPGF_API.Heroes;
 using TBRPGF_API.Dto;
+using TBRPGF_API.Enums;
 
 namespace TBRPGF_API.Controllers
 {
@@ -29,20 +30,21 @@ namespace TBRPGF_API.Controllers
             try
             {
                 var heroList = _context.Heroes
-                    .Where(h => h.IsPlayable)
+                    .Where(h => h.IsPlayable).Join(_context.HeroPortrait, h => h.Id, p => p.HeroId, (h, p) => new { hero = h, portrait = p })
                     .Select(h => new PlayableHeroDto
                     {
-                        Id = h.Id,
-                        Name = h.Name,
-                        AccuracyRate = h.AccuracyRate,
-                        Armor = GetRandomValue(h.Armor.DamageReducitonMinimum, h.Armor.DamageReducitonMaximum),
-                        HP = GetRandomValue(h.HPMin, h.HPMax),
-                        Mana = GetRandomValue(h.ManaMin, h.ManaMax),
-                        Attack = GetRandomValue(h.AttackMinimum, h.AttackMaximum),
-                        Description= h.Description,
-                        HeroClass = h.HeroClass.ClassName,
-                        Rating= h.Rating,
-                        SpellModifier = h.SpellModifier
+                        Id = h.hero.Id,
+                        Name = h.hero.Name,
+                        AccuracyRate = h.hero.AccuracyRate,
+                        Armor = GetRandomValue(h.hero.Armor.DamageReducitonMinimum, h.hero.Armor.DamageReducitonMaximum),
+                        HP = GetRandomValue(h.hero.HPMin, h.hero.HPMax),
+                        Mana = GetRandomValue(h.hero.ManaMin, h.hero.ManaMax),
+                        Attack = GetRandomValue(h.hero.AttackMinimum, h.hero.AttackMaximum),
+                        Description= h.hero.Description,
+                        HeroClass = h.hero.HeroClass.ClassName,
+                        Rating= h.hero.Rating,
+                        SpellModifier = h.hero.SpellModifier,
+                        Portrait = h.portrait.HeroImage
                     }) 
                     .ToList();
 
@@ -60,21 +62,22 @@ namespace TBRPGF_API.Controllers
         {
             Random rnd = new Random();
             var heroList = new List<PlayableHeroDto>();
-            var heroes = _context.Heroes
-                    .Where(h => h.IsPlayable)
+            var heroes = _context.Heroes.Join(_context.HeroPortrait, h => h.Id, p => p.HeroId, (h, p) => new {hero = h, portrait = p})
+                    .Where(h => h.hero.IsPlayable)
                     .Select(h => new PlayableHeroDto
                     {
-                        Id = h.Id,
-                        Name = h.Name,
-                        AccuracyRate = h.AccuracyRate,
-                        Armor = GetRandomValue(h.Armor.DamageReducitonMinimum, h.Armor.DamageReducitonMaximum),
-                        HP = GetRandomValue(h.HPMin, h.HPMax),
-                        Mana = GetRandomValue(h.ManaMin, h.ManaMax),
-                        Attack = GetRandomValue(h.AttackMinimum, h.AttackMaximum),
-                        Description = h.Description,
-                        HeroClass = h.HeroClass.ClassName,
-                        Rating = h.Rating,
-                        SpellModifier = h.SpellModifier
+                        Id = h.hero.Id,
+                        Name = h.hero.Name,
+                        AccuracyRate = h.hero.AccuracyRate,
+                        Armor = GetRandomValue(h.hero.Armor.DamageReducitonMinimum, h.hero.Armor.DamageReducitonMaximum),
+                        HP = GetRandomValue(h.hero.HPMin, h.hero.HPMax),
+                        Mana = GetRandomValue(h.hero.ManaMin, h.hero.ManaMax),
+                        Attack = GetRandomValue(h.hero.AttackMinimum, h.hero.AttackMaximum),
+                        Description = h.hero.Description,
+                        HeroClass = h.hero.HeroClass.ClassName,
+                        Rating = h.hero.Rating,
+                        SpellModifier = h.hero.SpellModifier,
+                        Portrait = h.portrait.HeroImage
                     })
                     .ToList();
 
@@ -82,6 +85,9 @@ namespace TBRPGF_API.Controllers
             {
                 for(int i = 0; i<2; i++)
                 {
+                    var rank = rnd.Next(1,100);
+                    Rating rating = GetRandomRating(rank);
+                    IEnumerable<PlayableHeroDto> heroRanked = heroes.Where(hr => hr.Rating == rating);
                     int index = rnd.Next(heroes.Count);
                     heroList.Add(heroes[index]);
                     heroes.RemoveAt(index);
@@ -96,7 +102,6 @@ namespace TBRPGF_API.Controllers
 
         }
 
-        // GET: api/Heroes/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Hero>> GetHero(int id)
         {
@@ -110,8 +115,6 @@ namespace TBRPGF_API.Controllers
             return hero;
         }
 
-        // PUT: api/Heroes/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutHero(int id, Hero hero)
         {
@@ -141,8 +144,7 @@ namespace TBRPGF_API.Controllers
             return NoContent();
         }
 
-        // POST: api/Heroes
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
         [HttpPost]
         public async Task<ActionResult<Hero>> PostHero(Hero hero)
         {
@@ -152,7 +154,6 @@ namespace TBRPGF_API.Controllers
             return CreatedAtAction("GetHero", new { id = hero.Id }, hero);
         }
 
-        // DELETE: api/Heroes/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteHero(int id)
         {
@@ -177,6 +178,22 @@ namespace TBRPGF_API.Controllers
         {
             Random random= new Random();
             return random.Next(minValue, maxValue);
+        }
+
+        private Rating GetRandomRating(int randomChance)
+        {
+            switch (randomChance)
+            {
+                case< 40:
+                    return Rating.R;
+                case< 65:
+                    return Rating.SR;
+                case< 96:
+                    return Rating.SSR;
+                case < 98:
+                    return Rating.UR;
+                default: return Rating.R;
+            }
         }
     }
 }

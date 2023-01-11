@@ -16,5 +16,8 @@ namespace TBRPGF_API.Dto
         public string HeroClass { get; set; }
         public int AccuracyRate { get; set; }
         public Rating Rating { get; set; }
+        public byte[] Portrait { get; set; }
+
+        public List<Spell> CastableSpells { get; set; }
     }
 }
