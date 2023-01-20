@@ -1,7 +1,7 @@
 ﻿using TBRPGF_API.Enums;
 using TBRPGF_API.Heroes;
 
-namespace TBRPGF_API.Dto
+namespace TBRPGF_API.Dto.HeroesDto
 {
     public class PlayableHeroDto
     {

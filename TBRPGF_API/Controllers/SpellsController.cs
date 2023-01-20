@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TBRPGF_API.Data.Context;
 using TBRPGF_API.Heroes;
+using TBRPGF_API.Services.Spells.Interface;
 
 namespace TBRPGF_API.Controllers
 {
@@ -14,81 +15,34 @@ namespace TBRPGF_API.Controllers
     [ApiController]
     public class SpellsController : ControllerBase
     {
-        private readonly TBRPGDBContext _context;
+        private readonly ISpellService _service;
 
-        public SpellsController(TBRPGDBContext context)
+        public SpellsController(ISpellService service)
         {
-            _context = context;
+            _service = service;
         }
 
         // GET: api/Spells
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Spell>>> GetSpells()
         {
-            return await _context.Spells.ToListAsync();
+            var spells = await _service.GetSpells();
+            if (spells == null)
+                return BadRequest("No available spells");
+            if (spells.Count() == 0)
+                return NotFound("No spells were found");
+            return Ok();
         }
 
-
-        // PUT: api/Spells/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutSpell(int id, Spell spell)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Spell>> GetSpell(int id)
         {
-            if (id != spell.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(spell).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!SpellExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Spells
-        [HttpPost]
-        public async Task<ActionResult<Spell>> PostSpell(Spell spell)
-        {
-            _context.Spells.Add(spell);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetSpell", new { id = spell.Id }, spell);
-        }
-
-        // DELETE: api/Spells/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSpell(int id)
-        {
-            var spell = await _context.Spells.FindAsync(id);
+            var spell= await _service.GetSpell(id);
             if (spell == null)
-            {
-                return NotFound();
-            }
+                return NotFound("Spell not Found");
 
-            _context.Spells.Remove(spell);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return spell;
         }
 
-        private bool SpellExists(int id)
-        {
-            return _context.Spells.Any(e => e.Id == id);
-        }
     }
 }

@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TBRPGF_API.Data.Context;
 using TBRPGF_API.Heroes;
-using TBRPGF_API.Dto;
 using TBRPGF_API.Enums;
+using TBRPGF_API.Services.Heroes.Interfaces;
+using TBRPGF_API.Dto.HeroesDto;
 
 namespace TBRPGF_API.Controllers
 {
@@ -16,184 +17,49 @@ namespace TBRPGF_API.Controllers
     [ApiController]
     public class HeroesController : ControllerBase
     {
-        private readonly TBRPGDBContext _context;
+        private readonly IHeroService _service;
 
-        public HeroesController(TBRPGDBContext context)
+        public HeroesController(IHeroService service)
         {
-            _context = context;
+            _service = service;
         }
 
         // GET: api/Heroes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PlayableHeroDto>>> GetHeroes()
+        public async Task<ActionResult<List<HeroSampleDto>>> GetHeroes()
         {
-            try
-            {
-                var heroList = _context.Heroes
-                    .Where(h => h.IsPlayable).Join(_context.HeroPortrait, h => h.Id, p => p.HeroId, (h, p) => new { hero = h, portrait = p })
-                    .Select(h => new PlayableHeroDto
-                    {
-                        Id = h.hero.Id,
-                        Name = h.hero.Name,
-                        AccuracyRate = h.hero.AccuracyRate,
-                        Armor = GetRandomValue(h.hero.Armor.DamageReducitonMinimum, h.hero.Armor.DamageReducitonMaximum),
-                        HP = GetRandomValue(h.hero.HPMin, h.hero.HPMax),
-                        Mana = GetRandomValue(h.hero.ManaMin, h.hero.ManaMax),
-                        Attack = GetRandomValue(h.hero.AttackMinimum, h.hero.AttackMaximum),
-                        Description= h.hero.Description,
-                        HeroClass = h.hero.HeroClass.ClassName,
-                        Rating= h.hero.Rating,
-                        SpellModifier = h.hero.SpellModifier,
-                        Portrait = h.portrait.HeroImage
-                    }) 
-                    .ToList();
-
-                return heroList;
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var heroes = await _service.GetHeroes();
+            if (heroes == null)
+                return BadRequest("No available heroes");
+            if (heroes.Count == 0)
+                return NotFound("No heroes were found");
+            return Ok();
         }
+
 
         [HttpGet]
         [Route("Playable")]
-        public async Task<ActionResult<IEnumerable<PlayableHeroDto>>> GetRandomPlayableHeroes()
+        public async Task<ActionResult<List<PlayableHeroDto>>> GetRandomPlayableHeroes()
         {
-            Random rnd = new Random();
-            var heroList = new List<PlayableHeroDto>();
-            var heroes = _context.Heroes.Join(_context.HeroPortrait, h => h.Id, p => p.HeroId, (h, p) => new {hero = h, portrait = p})
-                    .Where(h => h.hero.IsPlayable)
-                    .Select(h => new PlayableHeroDto
-                    {
-                        Id = h.hero.Id,
-                        Name = h.hero.Name,
-                        AccuracyRate = h.hero.AccuracyRate,
-                        Armor = GetRandomValue(h.hero.Armor.DamageReducitonMinimum, h.hero.Armor.DamageReducitonMaximum),
-                        HP = GetRandomValue(h.hero.HPMin, h.hero.HPMax),
-                        Mana = GetRandomValue(h.hero.ManaMin, h.hero.ManaMax),
-                        Attack = GetRandomValue(h.hero.AttackMinimum, h.hero.AttackMaximum),
-                        Description = h.hero.Description,
-                        HeroClass = h.hero.HeroClass.ClassName,
-                        Rating = h.hero.Rating,
-                        SpellModifier = h.hero.SpellModifier,
-                        Portrait = h.portrait.HeroImage
-                    })
-                    .ToList();
-
-            try
-            {
-                for(int i = 0; i<2; i++)
-                {
-                    var rank = rnd.Next(1,100);
-                    Rating rating = GetRandomRating(rank);
-                    IEnumerable<PlayableHeroDto> heroRanked = heroes.Where(hr => hr.Rating == rating);
-                    int index = rnd.Next(heroes.Count);
-                    heroList.Add(heroes[index]);
-                    heroes.RemoveAt(index);
-                }
-
-                return heroList;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Not enough heroes to play");
-            }
+            var heroes = await _service.GetRandomPlayableHeroesAsync();
+            if (heroes == null)
+                return BadRequest("No available playable heroes");
+            if(heroes.Count == 0)
+                return NotFound("No heroes were found");
+            
+            return Ok(heroes);
 
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Hero>> GetHero(int id)
         {
-            var hero = await _context.Heroes.FindAsync(id);
-
-            if (hero == null)
-            {
-                return NotFound();
-            }
-
-            return hero;
+            var hero = await _service.GetHero(id);
+            if(hero == null)
+                return NotFound("Hero not found");
+            
+            return Ok(hero);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutHero(int id, Hero hero)
-        {
-            if (id != hero.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(hero).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!HeroExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-
-        [HttpPost]
-        public async Task<ActionResult<Hero>> PostHero(Hero hero)
-        {
-            _context.Heroes.Add(hero);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetHero", new { id = hero.Id }, hero);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteHero(int id)
-        {
-            var hero = await _context.Heroes.FindAsync(id);
-            if (hero == null)
-            {
-                return NotFound();
-            }
-
-            _context.Heroes.Remove(hero);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool HeroExists(int id)
-        {
-            return _context.Heroes.Any(e => e.Id == id);
-        }
-
-        private int GetRandomValue(int minValue, int maxValue)
-        {
-            Random random= new Random();
-            return random.Next(minValue, maxValue);
-        }
-
-        private Rating GetRandomRating(int randomChance)
-        {
-            switch (randomChance)
-            {
-                case< 40:
-                    return Rating.R;
-                case< 65:
-                    return Rating.SR;
-                case< 96:
-                    return Rating.SSR;
-                case < 98:
-                    return Rating.UR;
-                default: return Rating.R;
-            }
-        }
     }
 }
