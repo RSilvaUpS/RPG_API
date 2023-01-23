@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TBRPGF_API.Data.Context;
 
@@ -11,9 +12,11 @@ using TBRPGF_API.Data.Context;
 namespace TBRPGFAPI.Migrations
 {
     [DbContext(typeof(TBRPGDBContext))]
-    partial class TBRPGDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230123193751_model_fixing")]
+    partial class modelfixing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,9 +94,6 @@ namespace TBRPGFAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PortraitLink")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
@@ -128,6 +128,28 @@ namespace TBRPGFAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("HeroClasses");
+                });
+
+            modelBuilder.Entity("TBRPGF_API.Heroes.HeroPortrait", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("HeroId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("HeroImage")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HeroId");
+
+                    b.ToTable("HeroPortrait");
                 });
 
             modelBuilder.Entity("TBRPGF_API.Heroes.HeroSpellList", b =>
@@ -193,6 +215,17 @@ namespace TBRPGFAPI.Migrations
                     b.Navigation("Armor");
 
                     b.Navigation("HeroClass");
+                });
+
+            modelBuilder.Entity("TBRPGF_API.Heroes.HeroPortrait", b =>
+                {
+                    b.HasOne("TBRPGF_API.Heroes.Hero", "Hero")
+                        .WithMany()
+                        .HasForeignKey("HeroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hero");
                 });
 
             modelBuilder.Entity("TBRPGF_API.Heroes.HeroSpellList", b =>

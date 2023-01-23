@@ -5,7 +5,7 @@ namespace TBRPGF_API.Services.Heroes.Interfaces
     public interface IHeroService
     {
         Task<List<HeroSampleDto>> GetHeroes();
-        Task<List<PlayableHeroDto>> GetRandomPlayableHeroesAsync();
-        Task<Hero>? GetHero(int id);
+        Task<List<PlayableHeroDto>> GetRandomPlayableHeroes();
+        Hero GetHero(int id);
     }
 }

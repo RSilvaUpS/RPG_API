@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TBRPGF_API.Data.Context;
 
@@ -11,9 +12,11 @@ using TBRPGF_API.Data.Context;
 namespace TBRPGFAPI.Migrations
 {
     [DbContext(typeof(TBRPGDBContext))]
-    partial class TBRPGDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230123200252_table_fixing")]
+    partial class tablefixing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

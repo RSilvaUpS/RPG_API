@@ -33,7 +33,7 @@ namespace TBRPGF_API.Controllers
                 return BadRequest("No available heroes");
             if (heroes.Count == 0)
                 return NotFound("No heroes were found");
-            return Ok();
+            return Ok(heroes);
         }
 
 
@@ -41,7 +41,7 @@ namespace TBRPGF_API.Controllers
         [Route("Playable")]
         public async Task<ActionResult<List<PlayableHeroDto>>> GetRandomPlayableHeroes()
         {
-            var heroes = await _service.GetRandomPlayableHeroesAsync();
+            var heroes = await _service.GetRandomPlayableHeroes();
             if (heroes == null)
                 return BadRequest("No available playable heroes");
             if(heroes.Count == 0)
@@ -54,7 +54,7 @@ namespace TBRPGF_API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Hero>> GetHero(int id)
         {
-            var hero = await _service.GetHero(id);
+            var hero = _service.GetHero(id);
             if(hero == null)
                 return NotFound("Hero not found");
             

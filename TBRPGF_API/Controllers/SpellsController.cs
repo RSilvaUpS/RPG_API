@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TBRPGF_API.Data.Context;
+using TBRPGF_API.Dto.SpellsDto;
 using TBRPGF_API.Heroes;
 using TBRPGF_API.Services.Spells.Interface;
 
@@ -24,24 +25,24 @@ namespace TBRPGF_API.Controllers
 
         // GET: api/Spells
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Spell>>> GetSpells()
+        public async Task<ActionResult<IEnumerable<SpellDto>>> GetSpells()
         {
             var spells = await _service.GetSpells();
             if (spells == null)
                 return BadRequest("No available spells");
             if (spells.Count() == 0)
                 return NotFound("No spells were found");
-            return Ok();
+            return Ok(spells);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Spell>> GetSpell(int id)
+        public async Task<ActionResult<SpellDto>> GetSpell(int id)
         {
             var spell= await _service.GetSpell(id);
             if (spell == null)
                 return NotFound("Spell not Found");
 
-            return spell;
+            return Ok(spell);
         }
 
     }

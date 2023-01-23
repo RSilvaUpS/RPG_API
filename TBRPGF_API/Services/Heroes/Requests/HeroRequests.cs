@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TBRPGF_API.Data.Context;
 using TBRPGF_API.Dto.HeroesDto;
+using TBRPGF_API.Dto.SpellsDto;
 using TBRPGF_API.Enums;
 using TBRPGF_API.Services.Heroes.Interfaces;
 
@@ -15,9 +16,12 @@ namespace TBRPGF_API.Services.Heroes.Requests
             _context = context;
         }
 
-        public async Task<Hero>? GetHero(int id)
+        public Hero GetHero(int id)
         {
-            var hero = await _context.Heroes.FindAsync(id);
+            var hero = _context.Heroes
+                .Include(hero => hero.Armor)
+                .Include(hero => hero.HeroClass)
+                .Where(h => h.Id == id).FirstOrDefault();
 
             if (hero == null)
             {
@@ -37,9 +41,10 @@ namespace TBRPGF_API.Services.Heroes.Requests
                         Name = h.Name,
                         Description = h.Description,
                         HeroClass = h.HeroClass.ClassName,
-                        Rating = h.Rating,                       
+                        Rating = h.Rating.ToString(),
+                        Portrait = h.PortraitLink
                     })
-                    .ToListAsync();
+                    .OrderBy(h => h.Name).ToListAsync();
 
                 return heroList;
             }
@@ -49,27 +54,37 @@ namespace TBRPGF_API.Services.Heroes.Requests
             }
         }
 
-        public async Task<List<PlayableHeroDto>> GetRandomPlayableHeroesAsync()
+        public async Task<List<PlayableHeroDto>> GetRandomPlayableHeroes()
         {
             Random rnd = new Random();
             var heroList = new List<PlayableHeroDto>();
-            var heroes = await _context.Heroes.Join(_context.HeroPortrait, h => h.Id, p => p.HeroId, (h, p) => new { hero = h, portrait = p })
-                    .Where(h => h.hero.IsPlayable)
+            var heroes = await _context.Heroes
+                    .Where(h => h.IsPlayable)
                     .Select(h => new PlayableHeroDto
                     {
-                        Id = h.hero.Id,
-                        Name = h.hero.Name,
-                        AccuracyRate = h.hero.AccuracyRate,
-                        Armor = GetRandomValue(h.hero.Armor.DamageReducitonMinimum, h.hero.Armor.DamageReducitonMaximum),
-                        HP = GetRandomValue(h.hero.HPMin, h.hero.HPMax),
-                        Mana = GetRandomValue(h.hero.ManaMin, h.hero.ManaMax),
-                        Attack = GetRandomValue(h.hero.AttackMinimum, h.hero.AttackMaximum),
-                        Description = h.hero.Description,
-                        HeroClass = h.hero.HeroClass.ClassName,
-                        Rating = h.hero.Rating,
-                        SpellModifier = h.hero.SpellModifier,
-                        Portrait = h.portrait.HeroImage,
-                        CastableSpells = _context.HeroSpellList.Where(s => s.HeroId == h.hero.Id).Select(s => s.Spell).ToList()
+                        Id = h.Id,
+                        Name = h.Name,
+                        AccuracyRate = h.AccuracyRate,
+                        Armor = GetRandomValue(h.Armor.DamageReducitonMinimum, h.Armor.DamageReducitonMaximum),
+                        HP = GetRandomValue(h.HPMin, h.HPMax),
+                        Mana = GetRandomValue(h.ManaMin, h.ManaMax),
+                        AttackMinimum = h.AttackMinimum,
+                        AttackMaximum = h.AttackMaximum,
+                        Description = h.Description,
+                        HeroClass = h.HeroClass.ClassName,
+                        Rating = h.Rating.ToString(),
+                        SpellModifier = h.SpellModifier,
+                        Portrait = h.PortraitLink,
+                        CastableSpells = _context.HeroSpellList.Where(s => s.HeroId == h.Id).Select(s=> new SpellDto
+                        {
+                            Id =s.Spell.Id,
+                            Name = s.Spell.Name,
+                            DamageMax= s.Spell.DamageMax,
+                            DamageMin= s.Spell.DamageMin,
+                            Description= s.Spell.Description,
+                            ManaCost= s.Spell.ManaCost,
+                            SpellType = s.Spell.SpellType.ToString()
+                        }).ToList()
                     })
                     .ToListAsync();
 
@@ -79,8 +94,8 @@ namespace TBRPGF_API.Services.Heroes.Requests
                 {
                     var rank = rnd.Next(1, 100);
                     Rating rating = GetRandomRating(rank);
-                    IEnumerable<PlayableHeroDto> heroRanked = heroes.Where(hr => hr.Rating == rating);
-                    int index = rnd.Next(heroes.Count);
+                    IEnumerable<PlayableHeroDto> heroRanked = heroes.Where(hr => hr.Rating == rating.ToString());
+                    int index = rnd.Next(heroes.Count());
                     heroList.Add(heroes[index]);
                     heroes.RemoveAt(index);
                 }

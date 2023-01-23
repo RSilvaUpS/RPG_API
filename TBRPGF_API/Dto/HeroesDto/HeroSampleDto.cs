@@ -7,7 +7,8 @@ namespace TBRPGF_API.Dto.HeroesDto
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public Rating Rating { get; set; }
+        public string Rating { get; set; }
         public string HeroClass { get; set; }
+        public string Portrait { get; set;}
     }
 }

@@ -21,6 +21,7 @@ namespace TBRPGF_API.Heroes
         public int AccuracyRate { get; set; }
         public Rating Rating { get; set; }
         public bool IsPlayable { get; set; }
+        public string? PortraitLink { get; set; }
 
     }
 }

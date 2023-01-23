@@ -2,11 +2,11 @@
 {
     public enum SpellType
     {
-        Fire,
-        Ice,
-        Thunder,
-        Summon,
-        Holy,
-        Blade
+        Fire=1,
+        Ice=2,
+        Thunder=3,
+        Summon=4,
+        Holy=5,
+        Blade=6
     }
 }

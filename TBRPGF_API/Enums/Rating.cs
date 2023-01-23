@@ -2,9 +2,9 @@
 {
     public enum Rating
     {
-        R,
-        SR,
-        SSR,
-        UR
+        R=1,
+        SR=2,
+        SSR=3,
+        UR=4
     }
 }
