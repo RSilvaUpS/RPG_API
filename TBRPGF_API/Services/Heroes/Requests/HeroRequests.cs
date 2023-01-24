@@ -42,7 +42,8 @@ namespace TBRPGF_API.Services.Heroes.Requests
                         Description = h.Description,
                         HeroClass = h.HeroClass.ClassName,
                         Rating = h.Rating.ToString(),
-                        Portrait = h.PortraitLink
+                        Portrait = h.PortraitLink,
+                        isPlayable= h.IsPlayable,
                     })
                     .OrderBy(h => h.Name).ToListAsync();
 
@@ -106,6 +107,48 @@ namespace TBRPGF_API.Services.Heroes.Requests
             {
                 return null;
             }
+        }
+
+        public PlayableHeroDto GetEnemy(int id)
+        {
+            Random random = new Random();
+            var hero = _context.Heroes
+                .Include(hero => hero.Armor)
+                .Include(hero => hero.HeroClass).Where(h => h.Id != id)
+                .Select(h => new PlayableHeroDto
+                {
+                    Id = h.Id,
+                    Name = h.Name,
+                    AccuracyRate = h.AccuracyRate,
+                    Armor = GetRandomValue(h.Armor.DamageReducitonMinimum, h.Armor.DamageReducitonMaximum),
+                    HP = GetRandomValue(h.HPMin, h.HPMax),
+                    Mana = GetRandomValue(h.ManaMin, h.ManaMax),
+                    AttackMinimum = h.AttackMinimum,
+                    AttackMaximum = h.AttackMaximum,
+                    Description = h.Description,
+                    HeroClass = h.HeroClass.ClassName,
+                    Rating = h.Rating.ToString(),
+                    SpellModifier = h.SpellModifier,
+                    Portrait = h.PortraitLink,
+                    CastableSpells = _context.HeroSpellList.Where(s => s.HeroId == h.Id).Select(s => new SpellDto
+                    {
+                        Id = s.Spell.Id,
+                        Name = s.Spell.Name,
+                        DamageMax = s.Spell.DamageMax,
+                        DamageMin = s.Spell.DamageMin,
+                        Description = s.Spell.Description,
+                        ManaCost = s.Spell.ManaCost,
+                        SpellType = s.Spell.SpellType.ToString()
+                    }).ToList()
+                }).ToList();
+            var skip = (int)(random.NextDouble() * hero.Count());
+            var enemy = hero.OrderBy(o => o.Id).Skip(skip).Take(1).First();
+
+            if (enemy == null)
+            {
+                return null;
+            }
+            return enemy;
         }
 
         private static int GetRandomValue(int minValue, int maxValue)

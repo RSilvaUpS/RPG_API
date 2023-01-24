@@ -38,7 +38,7 @@ namespace TBRPGF_API.Controllers
 
 
         [HttpGet]
-        [Route("Playable")]
+        [Route("playable")]
         public async Task<ActionResult<List<PlayableHeroDto>>> GetRandomPlayableHeroes()
         {
             var heroes = await _service.GetRandomPlayableHeroes();
@@ -59,6 +59,16 @@ namespace TBRPGF_API.Controllers
                 return NotFound("Hero not found");
             
             return Ok(hero);
+        }
+        [HttpGet]
+        [Route("get-enemy")]
+        public async Task<ActionResult<PlayableHeroDto>> GetEnemy(int id)
+        {
+            var enemy = _service.GetEnemy(id);
+            if (enemy == null)
+                return NotFound("Hero not found");
+
+            return Ok(enemy);
         }
 
     }
