@@ -12,5 +12,6 @@ namespace TBRPGF_API.Heroes
         public int DamageMax { get; set; }
         public SpellType SpellType { get; set; }
         public int ManaCost { get; set; }
+        public string? PortraitLink { get; set; }
     }
 }

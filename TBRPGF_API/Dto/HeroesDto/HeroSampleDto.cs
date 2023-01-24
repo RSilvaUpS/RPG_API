@@ -9,6 +9,6 @@ namespace TBRPGF_API.Dto.HeroesDto
         public string Description { get; set; }
         public string Rating { get; set; }
         public string HeroClass { get; set; }
-        public string Portrait { get; set;}
+        public string? Portrait { get; set;}
     }
 }

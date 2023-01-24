@@ -11,5 +11,6 @@ namespace TBRPGF_API.Dto.SpellsDto
         public int DamageMax { get; set; }
         public string? SpellType { get; set; }
         public int ManaCost { get; set; }
+        public string? Portrait { get; set; } 
     }
 }
